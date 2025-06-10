@@ -49,7 +49,7 @@ Este projeto é uma API back-end para geração e gerenciamento de modelos de co
 1. Clone o repositório:
    ```bash
    git clone https://github.com/RafaelHenriqu/ContratEasy.git
-   cd seu-repo
+   cd ContratEasy
 
 2. Instale as dependências:
 
