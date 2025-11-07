@@ -90,10 +90,5 @@ node index.js
 
 E receba o contrato final preenchido!
 
-## 📌 Observações
-* Ainda não gera PDF ou envia por e-mail. Isso pode ser adicionado em versões futuras.
-
-* O sistema é ideal para integrar com um frontend ou servir como base para um SaaS.
-
 ## 📚 Licença
 Este projeto é de código aberto, feito para fins educacionais e profissionais. Fique à vontade para usar e adaptar.
