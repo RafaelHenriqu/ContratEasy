@@ -1,94 +1,131 @@
-# 📝 Gerador de Contratos - Back-End (Node.js + MySQL)
+# ContratEasy
 
-Este projeto é uma API back-end para geração e gerenciamento de modelos de contratos personalizados. Os usuários podem se registrar, fazer login e preencher contratos com seus próprios dados. Apenas administradores podem criar novos modelos.
-
-## 🔧 Tecnologias Utilizadas
-
-- Node.js + Express
-- MySQL (usando `mysql2`)
-- JWT para autenticação
-- Bcrypt para hash de senhas
-- Mustache para renderização de modelos dinâmicos
-- Cookie-parser
-
----
+O **ContratEasy** é uma API RESTful para gerenciamento de contratos. Permite criar, editar, visualizar e remover contratos, com autenticação via JWT e controle de visibilidade por status.
 
 ## 🚀 Funcionalidades
 
-### 🛡️ Autenticação
-- Registro de usuários com hash de senha (`bcrypt`)
-- Login com JWT + cookies
-- Verificação de token para proteger rotas
-- Controle de acesso por função (usuário comum vs. administrador)
+### 🔐 Autenticação e Segurança
+- Registro e Login de usuários.
+- JWT (JSON Web Tokens) para sessões seguras e *stateless*.
+- Cookies `httpOnly` para prevenir ataques XSS.
+- Senhas protegidas com `bcrypt`.
 
-### 📄 Contratos
-- Administradores podem:
-  - Criar modelos de contrato com título, descrição e conteúdo com placeholders (ex: `{{nome}}`)
-- Usuários autenticados podem:
-  - Listar todos os modelos disponíveis
-  - Selecionar um modelo por ID
-  - Preencher o modelo com seus dados via POST e receber o texto final renderizado
+### 📄 Gestão de Contratos (CRUD)
+- Criar contrato com validação estrita de tipos e campos obrigatórios.
+- Ver apenas os próprios contratos (perfil).
+- Ver contratos públicos (ativos e concluídos) na busca global.
+- Editar contrato com verificação de propriedade.
+- Remover contrato com validação de permissão.
 
----
+### 🛡️ Controle de Acesso por Status
+- Status `ativo` ou `concluido`: visíveis para todos os usuários.
+- Status `inativo`: oculto na busca global, visível apenas para o dono.
+- Validação de dados: o servidor rejeita tipos incorretos (ex: `Value` deve ser número).
 
-## 📦 Estrutura das Rotas
+## 🛠️ Tecnologias
 
-| Método | Rota                        | Proteção         | Descrição                                          |
-|--------|-----------------------------|------------------|----------------------------------------------------|
-| POST   | `/Register`                 | Pública          | Cria nova conta de usuário                         |
-| POST   | `/Login`                    | Pública          | Login e geração de JWT                             |
-| GET    | `/`                         | Token de usuário | Lista todos os modelos de contrato                 |
-| GET    | `/Contract/:id`            | Token de usuário | Retorna um modelo de contrato específico           |
-| POST   | `/Contract_Edit/:id`       | Token de usuário | Aplica os dados no modelo (render com Mustache)   |
-| POST   | `/Admin/Models/Add`        | Apenas admins    | Adiciona um novo modelo de contrato                |
+- Node.js
+- Express.js
+- MySQL
+- JsonWebToken (JWT)
+- Bcrypt
+- dotenv
 
----
-
-## ⚙️ Instalação e Uso
+## 📦 Instalação e Configuração
 
 1. Clone o repositório:
-   ```bash
-   git clone https://github.com/RafaelHenriqu/ContratEasy.git
-   cd ContratEasy
+```bash
+git clone https://github.com/RafaelHenriqu/ContratEasy.git
+cd contrateasy
+```
 
 2. Instale as dependências:
-
-````bash
+```bash
 npm install
-````
+```
 
-3. Configure o .env:
-````env
-host=localhost
-user=root
-password=sua_senha
-port=3306
-database=contratos
-SC=sua_chave_jwt
-````
+3. Configure o banco de dados (MySQL):
+```sql
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-4. Inicie o servidor:
+CREATE TABLE contracts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    value DECIMAL(10, 2),
+    status VARCHAR(50) DEFAULT 'ativo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
 
-````bash
-node index.js
-````
+4. Crie um arquivo `.env` na raiz com:
+```env
+DB_HOST=seu_host
+DB_USER=seu_usuario
+DB_PASSWORD=sua_senha
+DB_PORT=sua_porta
+SERVER_PORT=porta_do_servidor
+DB_NAME=nome_do_banco
+SECRETS_JWT=sua_chave_secreta_aqui
+```
 
-## 🧪 Exemplo de Uso (via Postman)
-1. Faça login e salve o cookie Token
+1. Inicie o servidor:
+```bash
+npm run dev
+```
 
-2. Acesse GET / para ver os modelos
+## 📡 Endpoints
 
-3. Acesse POST /Contract_Edit/:id com um corpo como:
+### Autenticação
 
-````json
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST   | /auth/register | Cria uma nova conta de usuário |
+| POST   | /auth/login | Autentica e retorna o JWT |
+
+### Contratos
+
+| Método | Endpoint | Descrição | Auth |
+|--------|----------|-----------|:----:|
+| POST   | /contracts/create | Cria um novo contrato | ✅ |
+| PUT    | /contracts/edit | Edita um contrato existente | ✅ |
+| DELETE | /contracts/del | Remove um contrato | ✅ |
+| GET    | /contracts/search | Lista contratos públicos | ✅ |
+| GET    | /contracts/profile | Lista contratos do usuário logado | ✅ |
+
+## 📝 Exemplo de Requisição
+
+**POST /contracts**
+
+```json
 {
-    "Nome":"exemplo",
-    "Projeto":"exemplo",
-    "Empresa":"exemplo"
+  "Title": "Consultoria de Marketing",
+  "Description": "Projeto de SEO para site XYZ",
+  "Status": "ativo",
+  "Value": 1500.00
 }
-````
+```
 
-E receba o contrato final preenchido!
+**Resposta:**
 
-## 📚 Licença
-Este projeto é de código aberto, feito para fins educacionais e profissionais. Fique à vontade para usar e adaptar.
+```json
+{
+  "message": "Contrato criado!"
+}
+```
+
+## 📄 Licença
+
+Projeto desenvolvido para fins de portfólio e estudo.
+
+---
+
+Feito com carinho por **Rafael Henrique**
