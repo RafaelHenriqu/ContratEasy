@@ -110,7 +110,7 @@ npm run dev
   "Title": "Consultoria de Marketing",
   "Description": "Projeto de SEO para site XYZ",
   "Status": "ativo",
-  "Value": 1500.00
+  "Value": 1500
 }
 ```
 
